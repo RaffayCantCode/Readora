@@ -43,9 +43,8 @@ function text(value: unknown) {
 
 async function openLibraryTrending(year: number, limit: number) {
   const params = new URLSearchParams({
-    q: `first_publish_year:${year}`,
-    sort: "trending",
-    limit: String(limit),
+    q: "subject:fiction OR subject:literature OR subject:fantasy OR subject:classics",
+    limit: String(limit * 2),
     fields: "key,title,author_name,subject,first_publish_year,publisher,number_of_pages_median,isbn,cover_i,first_sentence",
   });
   const url = "https://openlibrary.org/search.json?" + params.toString();
@@ -53,30 +52,33 @@ async function openLibraryTrending(year: number, limit: number) {
     const response = await fetch(url, { headers: { Accept: "application/json", "User-Agent": "Readora local development" }, next: { revalidate: 3600 } });
     if (!response.ok) throw new Error("Open Library trending returned " + response.status);
     const payload = await response.json() as OpenLibraryResponse;
-    const books = (payload.docs ?? []).filter((doc) => doc.title).map((doc): ProviderBook => ({
-      provider: "openlibrary",
-      providerId: doc.key ?? doc.title ?? "unknown",
-      title: doc.title ?? "Untitled",
-      authors: doc.author_name ?? ["Unknown author"],
-      description: text(doc.first_sentence),
-      subjects: (doc.subject ?? []).slice(0, 12),
-      publishedYear: doc.first_publish_year,
-      publisher: doc.publisher?.[0],
-      pageCount: doc.number_of_pages_median,
-      isbns: (doc.isbn ?? []).slice(0, 8),
-      coverUrl: doc.cover_i ? "https://covers.openlibrary.org/b/id/" + doc.cover_i + "-L.jpg?default=false" : undefined,
-      sourceLinks: doc.key ? ["https://openlibrary.org" + doc.key] : [],
-    }));
-    return { books, total: payload.numFound ?? books.length };
+    const books = (payload.docs ?? []).filter((doc) => doc.title).map((doc): ProviderBook => {
+      const isbnCover = doc.isbn?.[0] ? `https://covers.openlibrary.org/b/isbn/${doc.isbn[0]}-L.jpg` : undefined;
+      const coverUrl = doc.cover_i ? "https://covers.openlibrary.org/b/id/" + doc.cover_i + "-L.jpg?default=false" : isbnCover;
+      return {
+        provider: "openlibrary",
+        providerId: doc.key ?? doc.title ?? "unknown",
+        title: doc.title ?? "Untitled",
+        authors: doc.author_name ?? ["Unknown author"],
+        description: text(doc.first_sentence),
+        subjects: (doc.subject ?? []).slice(0, 12),
+        publishedYear: doc.first_publish_year,
+        publisher: doc.publisher?.[0],
+        pageCount: doc.number_of_pages_median,
+        isbns: (doc.isbn ?? []).slice(0, 8),
+        coverUrl,
+        sourceLinks: doc.key ? ["https://openlibrary.org" + doc.key] : [],
+      };
+    });
+    return { books: books.slice(0, limit), total: payload.numFound ?? books.length };
   });
 }
 
 async function googleNewest(year: number, limit: number) {
   const params = new URLSearchParams({
     q: "subject:fiction",
-    orderBy: "newest",
     printType: "books",
-    maxResults: String(Math.min(40, limit * 2)),
+    maxResults: String(Math.min(20, limit * 2)),
   });
   const apiKey = process.env.GOOGLE_BOOKS_API_KEY;
   if (apiKey) params.set("key", apiKey);
@@ -102,7 +104,7 @@ async function googleNewest(year: number, limit: number) {
         coverUrl: (info.imageLinks?.thumbnail ?? info.imageLinks?.smallThumbnail)?.replace("http://", "https://"),
         sourceLinks: info.previewLink ? [info.previewLink] : [],
       };
-    }).filter((book) => !book.publishedYear || book.publishedYear === year);
+    });
     return { books: books.slice(0, limit), total: payload.totalItems ?? books.length };
   });
 }
@@ -135,3 +137,4 @@ export async function getTrendingBooks(year: number, limit: number): Promise<Sea
     degraded,
   };
 }
+

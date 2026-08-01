@@ -14,13 +14,10 @@ export async function searchBooks(query: BookSearchQuery): Promise<SearchRespons
     degraded = true;
   }
 
-  const hasGoogleKey = Boolean(process.env.GOOGLE_BOOKS_API_KEY);
-  if (hasGoogleKey || !openLibrary?.books.length) {
-    try {
-      googleBooks = await searchGoogleBooks(query);
-    } catch {
-      degraded = true;
-    }
+  try {
+    googleBooks = await searchGoogleBooks(query);
+  } catch {
+    degraded = true;
   }
 
   const items = mergeBooks(openLibrary?.books ?? [], googleBooks?.books ?? []);

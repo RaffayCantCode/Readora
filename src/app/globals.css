@@ -3,68 +3,150 @@
 @tailwind utilities;
 
 :root {
-  --ink: 30 24 21;
-  --ink-soft: 94 87 78;
-  --archive: 11 10 9;
-  --night: 24 20 18;
-  --parchment: 244 239 228;
-  --parchment-deep: 221 211 194;
-  --stone: 215 209 196;
-  --walnut: 53 37 29;
-  --leather: 116 66 43;
-  --brass: 199 141 61;
-  --moss: 47 89 72;
-  --oxblood: 142 47 50;
-  --cobalt: 31 95 191;
-  --signal: 227 66 52;
-  --smoke: 216 208 195;
   --font-display: "Iowan Old Style", "Baskerville", "Times New Roman", serif;
   --font-sans: "Avenir Next", "Helvetica Neue", Arial, sans-serif;
 }
 
 * { box-sizing: border-box; }
-html { scroll-behavior: smooth; background: rgb(var(--parchment)); }
+html { scroll-behavior: smooth; }
 body {
   margin: 0;
-  background: rgb(var(--archive));
-  color: rgb(var(--ink));
   font-family: var(--font-sans);
   font-feature-settings: "kern", "liga";
 }
 a { color: inherit; text-decoration: none; }
 button { font: inherit; }
-::selection { background: rgb(var(--brass) / 0.28); color: rgb(var(--ink)); }
-:focus-visible { outline: 2px solid rgb(var(--brass)); outline-offset: 4px; }
-::-webkit-scrollbar { width: 10px; }
-::-webkit-scrollbar-track { background: rgb(var(--parchment)); }
-::-webkit-scrollbar-thumb { background: rgb(var(--walnut) / 0.35); border: 3px solid rgb(var(--parchment)); border-radius: 999px; }
+:focus-visible { outline: 2px solid #c78d3d; outline-offset: 4px; }
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.2); }
+::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 4px; }
+
+/* Themes System */
+
+/* 1. LIBRARY THEME (Default: Warm Wood, Mahogany, Brass, Leather, Warm Glow) */
+.theme-library {
+  --bg-main: #0b0a09;
+  --bg-surface: #15110d;
+  --bg-desk: #241913;
+  --bg-shelf: #2c1e16;
+  --text-main: #f4efe4;
+  --text-muted: #c4b9a7;
+  --text-dim: #8c7e6b;
+  --accent-brass: #c78d3d;
+  --accent-glow: rgba(199, 141, 61, 0.15);
+  --border-subtle: rgba(255, 255, 255, 0.1);
+  --border-strong: rgba(199, 141, 61, 0.4);
+  --shelf-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.85);
+  --book-shadow: 14px 20px 36px rgba(0, 0, 0, 0.6), inset 8px 0 14px rgba(255, 255, 255, 0.07);
+}
+
+/* 2. CLASSIC THEME (White Bone Paper, Clean Surface, Sharp Typography, Minimal) */
+.theme-classic {
+  --bg-main: #f7f5f0;
+  --bg-surface: #ffffff;
+  --bg-desk: #efece4;
+  --bg-shelf: #e5e0d4;
+  --text-main: #1c1917;
+  --text-muted: #57534e;
+  --text-dim: #8c857b;
+  --accent-brass: #9a6627;
+  --accent-glow: rgba(154, 102, 39, 0.08);
+  --border-subtle: rgba(0, 0, 0, 0.08);
+  --border-strong: rgba(0, 0, 0, 0.25);
+  --shelf-shadow: 0 12px 28px -8px rgba(0, 0, 0, 0.12);
+  --book-shadow: 8px 14px 24px rgba(0, 0, 0, 0.15), inset 4px 0 8px rgba(0, 0, 0, 0.05);
+}
+
+/* 3. GLASS THEME (Frosted Modern Glass, Sleek Reflections, Blur, Translucent Ledges) */
+.theme-glass {
+  --bg-main: #07090e;
+  --bg-surface: rgba(15, 23, 42, 0.65);
+  --bg-desk: rgba(30, 41, 59, 0.5);
+  --bg-shelf: rgba(255, 255, 255, 0.06);
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --text-dim: #64748b;
+  --accent-brass: #38bdf8;
+  --accent-glow: rgba(56, 189, 248, 0.2);
+  --border-subtle: rgba(255, 255, 255, 0.12);
+  --border-strong: rgba(56, 189, 248, 0.45);
+  --shelf-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.9);
+  --book-shadow: 16px 24px 40px rgba(0, 0, 0, 0.7), inset 0 0 12px rgba(255, 255, 255, 0.15);
+}
+
+/* 4. DARK THEME (Pure Obsidian Minimal Black, Soft High-Contrast, Night Reading) */
+.theme-dark {
+  --bg-main: #050505;
+  --bg-surface: #0d0d0d;
+  --bg-desk: #141414;
+  --bg-shelf: #1a1a1a;
+  --text-main: #e2e8f0;
+  --text-muted: #8a99ad;
+  --text-dim: #475569;
+  --accent-brass: #d97706;
+  --accent-glow: rgba(217, 119, 6, 0.14);
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.25);
+  --shelf-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.95);
+  --book-shadow: 12px 18px 30px rgba(0, 0, 0, 0.8), inset 6px 0 12px rgba(255, 255, 255, 0.05);
+}
 
 @layer utilities {
-  .text-balance { text-wrap: balance; }
   .eyebrow { letter-spacing: 0.22em; text-transform: uppercase; font-size: 0.68rem; font-weight: 700; }
+  
+  /* Wood Texture Overlay for Library Desk */
+  .wood-grain {
+    background-image: 
+      linear-gradient(90deg, rgba(255, 255, 255, 0.03), transparent 25%, rgba(0, 0, 0, 0.08) 75%),
+      repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.03) 0 2px, transparent 2px 8px),
+      radial-gradient(ellipse at 50% 0%, rgba(199, 141, 61, 0.15), transparent 70%);
+  }
+
+  /* Paper Grain for Classic Theme */
   .paper-grain {
-    background-image: radial-gradient(rgb(var(--walnut) / 0.06) 0.7px, transparent 0.7px);
-    background-size: 9px 9px;
+    background-image: radial-gradient(rgba(0, 0, 0, 0.04) 0.8px, transparent 0.8px);
+    background-size: 10px 10px;
   }
-  .catalog-stage {
-    background:
-      linear-gradient(90deg, rgb(var(--archive)) 0%, rgb(var(--night)) 18%, rgb(39 30 25) 50%, rgb(var(--night)) 82%, rgb(var(--archive)) 100%),
-      radial-gradient(circle at 50% 10%, rgb(var(--brass) / 0.18), transparent 32%);
-  }
+
+  /* Book Cloth & Spine Depth */
   .book-cloth {
     background-image:
-      linear-gradient(90deg, rgb(255 255 255 / 0.18), transparent 14%, rgb(0 0 0 / 0.18) 92%),
-      repeating-linear-gradient(0deg, rgb(255 255 255 / 0.035) 0 1px, transparent 1px 4px),
-      repeating-linear-gradient(90deg, rgb(0 0 0 / 0.04) 0 1px, transparent 1px 5px);
+      linear-gradient(90deg, rgba(255, 255, 255, 0.22) 0%, transparent 12%, rgba(0, 0, 0, 0.22) 90%),
+      repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.03) 0 1px, transparent 1px 4px);
   }
-  .fine-grid {
-    background-image:
-      linear-gradient(rgb(255 255 255 / 0.045) 1px, transparent 1px),
-      linear-gradient(90deg, rgb(255 255 255 / 0.045) 1px, transparent 1px);
-    background-size: 18px 18px;
+
+  .spine-3d {
+    box-shadow: 
+      -6px 0 14px rgba(0, 0, 0, 0.4),
+      12px 18px 32px rgba(0, 0, 0, 0.5),
+      inset 8px 0 12px rgba(255, 255, 255, 0.12),
+      inset -10px 0 14px rgba(0, 0, 0, 0.35);
   }
-  .spine-shadow { box-shadow: 18px 22px 38px rgb(0 0 0 / 0.34), inset 10px 0 16px rgb(255 255 255 / 0.08), inset -14px 0 18px rgb(0 0 0 / 0.24); }
-  .hairline { border-color: rgb(var(--walnut) / 0.14); }
+
+  /* Shelf Surface Ledge */
+  .shelf-ledge {
+    position: relative;
+  }
+  .shelf-ledge::after {
+    content: "";
+    position: absolute;
+    left: -2%;
+    right: -2%;
+    bottom: -16px;
+    height: 16px;
+    background: linear-gradient(180deg, var(--bg-shelf), rgba(0, 0, 0, 0.4));
+    border-top: 2px solid var(--accent-brass);
+    box-shadow: 0 14px 28px rgba(0, 0, 0, 0.5);
+    border-radius: 2px;
+  }
+
+  /* Reading Desk Surface */
+  .desk-surface {
+    position: relative;
+    background: var(--bg-desk);
+    box-shadow: inset 0 2px 8px rgba(255, 255, 255, 0.05), 0 20px 40px rgba(0, 0, 0, 0.4);
+    border: 1px solid var(--border-subtle);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
