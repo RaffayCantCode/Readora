@@ -1,0 +1,9 @@
+import { ArrowRight, Play } from "lucide-react";
+import { books } from "@/lib/content";
+import { Button } from "@/components/ui/button";
+import { MotionSection } from "./motion-section";
+
+export function ContinueReading() {
+  const book = books[0];
+  return <MotionSection id="library" className="bg-walnut px-6 py-24 text-parchment lg:px-12 lg:py-32"><div className="mx-auto grid max-w-[1440px] items-center gap-10 lg:grid-cols-[.8fr_1.2fr]"><div><p className="eyebrow text-brass">Your shelf is waiting</p><h2 className="mt-5 max-w-md font-display text-5xl leading-[.95] tracking-[-0.05em]">Pick up where you left off.</h2><p className="mt-6 max-w-sm text-sm leading-7 text-parchment/60">Your place is kept, even when life takes you somewhere else.</p><Button variant="outline" className="mt-8 border-parchment/25 text-parchment hover:bg-parchment/10">Open my library <ArrowRight size={15} /></Button></div><div className="flex items-center gap-6 border-t border-parchment/15 pt-7 sm:gap-8"><div className="w-24 shrink-0 sm:w-32"><div className="aspect-[2/3] rounded-[2px] shadow-xl" style={{ backgroundColor: book.color }}><div className="m-2 h-[calc(100%-1rem)] border border-white/25 p-2 font-display text-sm text-parchment">{book.title}</div></div></div><div><p className="eyebrow text-brass">Currently reading</p><h3 className="mt-4 font-display text-3xl">{book.title}</h3><p className="mt-2 text-sm text-parchment/55">{book.author}</p><div className="mt-7 h-1 w-full max-w-xs rounded-full bg-parchment/15"><div className="h-full w-[62%] rounded-full bg-brass" /></div><div className="mt-2 flex justify-between text-[11px] text-parchment/45"><span>62% complete</span><span>Chapter 8</span></div><button className="mt-7 flex items-center gap-2 text-sm font-semibold text-brass"><span className="grid h-8 w-8 place-items-center rounded-full border border-brass"><Play size={12} fill="currentColor" /></span> Continue reading</button></div></div></div></MotionSection>;
+}

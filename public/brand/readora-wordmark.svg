@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 350 84" fill="none">
+  <g transform="translate(4 6) scale(.98)">
+    <path d="M9 17.5C20 15 29.1 17.1 36 23.4C42.9 17.1 52 15 63 17.5V57.3C52 54.7 42.9 56.9 36 63C29.1 56.9 20 54.7 9 57.3V17.5Z" fill="#755038" fill-opacity=".15"/>
+    <path d="M36 23.4C29.1 17.1 20 15 9 17.5V57.3C20 54.7 29.1 56.9 36 63M36 23.4C42.9 17.1 52 15 63 17.5V57.3C52 54.7 42.9 56.9 36 63M36 23.4V63" stroke="#755038" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M40.2 31.2C48.3 26.6 56.2 29.7 55.7 36.6C55.4 40.6 51.6 42.3 47.1 42.6L55.9 50.3" stroke="#755038" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M47.5 42.3C44.1 45.4 42.8 49 43.5 52.6C47.4 51.1 50.2 48.4 51.7 44.5" stroke="#755038" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" opacity=".7"/>
+  </g>
+  <text x="87" y="51" fill="#241F1A" font-family="Georgia, serif" font-size="42" letter-spacing="-1.8">Readora</text>
+  <text x="89" y="71" fill="#62584D" font-family="Arial, sans-serif" font-size="8" letter-spacing="2.4">A HOME FOR BOOKS</text>
+</svg>

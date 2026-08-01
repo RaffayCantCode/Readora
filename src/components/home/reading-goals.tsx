@@ -1,0 +1,6 @@
+import { ArrowUpRight, BookOpen } from "lucide-react";
+import { MotionSection } from "./motion-section";
+
+export function ReadingGoals() {
+  return <MotionSection id="reading-goals" className="mx-auto max-w-[1440px] px-6 py-24 lg:px-12 lg:py-36"><div className="rounded-sm bg-[#c9b99d] px-7 py-12 sm:px-12 lg:flex lg:items-end lg:justify-between"><div><p className="eyebrow text-leather">A gentle nudge</p><h2 className="mt-5 max-w-lg font-display text-5xl leading-[.92] tracking-[-0.05em]">Make a little time<br /><em className="font-normal text-leather">for a lot of life.</em></h2></div><div className="mt-10 max-w-sm lg:mt-0"><div className="mb-4 flex items-center justify-between text-sm"><span className="flex items-center gap-2"><BookOpen size={16} className="text-leather" /> This week’s goal</span><span className="font-semibold">3 / 5 hours</span></div><div className="h-2 rounded-full bg-walnut/15"><div className="h-full w-[60%] rounded-full bg-leather" /></div><p className="mt-5 text-sm leading-6 text-ink-soft">Two more quiet chapters and you’ll be there.</p><button className="mt-5 flex items-center gap-2 text-sm font-semibold text-leather">See reading stats <ArrowUpRight size={15} /></button></div></div></MotionSection>;
+}
