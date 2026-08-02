@@ -66,15 +66,15 @@ export function HeroOpenBook({
         <div className="relative flex flex-col sm:flex-row items-center gap-8 rounded-2xl border p-6 shadow-inner" style={{ backgroundColor: "var(--bg-desk)", borderColor: "var(--border-subtle)" }}>
           {/* 3D Open Illustrated Book Graphic */}
           <motion.div
-            initial={reduceMotion ? false : { opacity: 0, scale: 0.95, rotateY: -10 }}
-            animate={{ opacity: 1, scale: 1, rotateY: 0 }}
+            initial={reduceMotion ? false : { opacity: 0, scale: 0.95, rotateY: -12 }}
+            animate={{ opacity: 1, scale: 1, rotateY: -6 }}
             transition={{ duration: 0.5 }}
-            whileHover={reduceMotion ? {} : { rotateY: -5, scale: 1.03 }}
+            whileHover={reduceMotion ? {} : { rotateY: 0, rotateX: 4, scale: 1.04 }}
             onClick={() => onInspectBook && onInspectBook(heroBookMetadata)}
-            className="group relative cursor-pointer flex-1"
+            className="group perspective-1000 relative cursor-pointer flex-1"
           >
-            {/* Realistic Open Book Display */}
-            <div className="relative aspect-[1.4/1] w-full min-w-[260px] overflow-hidden rounded-xl border shadow-2xl flex" style={{ borderColor: "var(--border-strong)" }}>
+            {/* Realistic Open Book Display with 3D Depth */}
+            <div className="preserve-3d relative aspect-[1.4/1] w-full min-w-[260px] overflow-hidden rounded-xl border shadow-2xl flex transition-transform duration-300" style={{ borderColor: "var(--border-strong)" }}>
               {/* Left Page (Text Page) */}
               <div className="w-1/2 bg-[#fbf8f1] text-[#2c2419] p-4 text-[9px] leading-tight font-serif flex flex-col justify-between border-r border-black/10 shadow-inner">
                 <div>
@@ -83,8 +83,8 @@ export function HeroOpenBook({
                     <span>154</span>
                   </div>
                   <p className="font-semibold mb-1">Gilderoy Lockhart</p>
-                  <p className="line-clamp-6 opacity-85">
-                    {"\"Harry had not yet forgotten the flying car incident. Neither had Mrs. Weasley...\""}
+                  <p className="line-clamp-6 opacity-85 leading-normal">
+                    {"\"Harry had not yet forgotten the flying car incident. Neither had Mrs. Weasley, who sent a Howler that echoed through the Great Hall...\""}
                   </p>
                 </div>
                 <div className="text-[7px] text-center text-black/40 font-sans">Page 154</div>
@@ -105,12 +105,13 @@ export function HeroOpenBook({
                 </span>
               </div>
 
-              {/* Spine crease shadow */}
-              <div className="absolute inset-y-0 left-1/2 w-4 -translate-x-1/2 bg-gradient-to-r from-black/20 via-black/40 to-black/20 pointer-events-none" />
+              {/* Spine Crease & Book Curvature Shadow */}
+              <div className="absolute inset-y-0 left-1/2 w-6 -translate-x-1/2 bg-gradient-to-r from-black/25 via-black/50 to-black/25 pointer-events-none" />
+              <div className="absolute inset-0 bg-gradient-to-tr from-white/10 via-transparent to-black/20 pointer-events-none" />
             </div>
 
-            {/* Drop shadow on desk surface */}
-            <div className="absolute -bottom-4 inset-x-4 h-4 rounded-full bg-black/60 blur-md" />
+            {/* Realistic Drop Shadow underneath */}
+            <div className="absolute -bottom-4 inset-x-4 h-4 rounded-full bg-black/70 blur-md transition-all group-hover:blur-lg" />
           </motion.div>
 
           {/* Book Info Column */}

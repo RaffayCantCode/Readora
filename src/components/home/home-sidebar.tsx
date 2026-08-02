@@ -1,12 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { Home, BookOpen, Clock, Bookmark, Settings, PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { Home, BookOpen, Clock, Bookmark, Settings, BookMarked } from "lucide-react";
 import Link from "next/link";
-import { ReadoraLogo } from "@/components/brand/readora-logo";
 
 export function HomeSidebar() {
-  const [collapsed, setCollapsed] = useState(false);
   const [activeTab, setActiveTab] = useState("home");
 
   const navItems = [
@@ -18,60 +16,56 @@ export function HomeSidebar() {
   ];
 
   return (
-    <aside
-      className={`relative flex flex-col justify-between border-r py-6 transition-all duration-300 ${
-        collapsed ? "w-16 px-2" : "w-20 px-3 lg:w-56 lg:px-4"
-      }`}
+    <aside className="sticky top-6 z-40 hidden sm:flex flex-col items-center gap-6 py-6 px-2.5 my-4 ml-3 rounded-3xl border shadow-2xl self-start"
       style={{
         backgroundColor: "var(--bg-surface)",
-        borderColor: "var(--border-subtle)",
+        borderColor: "var(--border-strong)",
+        backdropFilter: "blur(20px)",
       }}
     >
-      <div className="space-y-8">
-        {/* Brand Logo in Top Left */}
-        {!collapsed ? (
-          <ReadoraLogo showTagline={false} />
-        ) : (
-          <div className="flex justify-center">
-            <ReadoraLogo showTagline={false} className="w-10 overflow-hidden" />
-          </div>
-        )}
+      {/* Brand Icon Badge */}
+      <Link href="/" className="flex h-10 w-10 items-center justify-center rounded-2xl border shadow-sm transition hover:scale-110" style={{ borderColor: "var(--border-subtle)", backgroundColor: "var(--bg-main)" }}>
+        <BookMarked size={20} style={{ color: "var(--accent-brass)" }} />
+      </Link>
 
-        {/* Navigation items that scroll down naturally with page */}
-        <nav className="space-y-2">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const active = activeTab === item.id;
-            return (
+      {/* Floating Vertical Navigation Icons */}
+      <nav className="flex flex-col gap-3">
+        {navItems.map((item) => {
+          const Icon = item.icon;
+          const active = activeTab === item.id;
+          return (
+            <div key={item.id} className="relative group">
               <Link
-                key={item.id}
                 href={item.href}
                 onClick={() => setActiveTab(item.id)}
-                className={`group flex items-center gap-3 rounded-2xl px-3 py-3 text-sm font-semibold transition-all ${
-                  active ? "shadow-md scale-[1.02]" : "hover:bg-black/5 dark:hover:bg-white/5"
+                className={`flex h-11 w-11 items-center justify-center rounded-2xl transition-all ${
+                  active ? "shadow-lg scale-105" : "hover:scale-110"
                 }`}
                 style={{
-                  backgroundColor: active ? "var(--accent-brass)" : "transparent",
+                  backgroundColor: active ? "var(--accent-brass)" : "var(--bg-main)",
                   color: active ? "var(--bg-main)" : "var(--text-muted)",
+                  border: active ? "none" : "1px solid var(--border-subtle)",
                 }}
               >
-                <Icon size={20} className="shrink-0 transition-transform group-hover:scale-110" />
-                {!collapsed && <span className="hidden truncate lg:inline">{item.label}</span>}
+                <Icon size={19} />
               </Link>
-            );
-          })}
-        </nav>
-      </div>
 
-      {/* Collapse Toggle */}
-      <button
-        onClick={() => setCollapsed(!collapsed)}
-        className="mt-12 flex items-center justify-center gap-2 rounded-xl p-2.5 text-xs font-medium transition hover:bg-black/5 dark:hover:bg-white/5"
-        style={{ color: "var(--text-dim)" }}
-      >
-        {collapsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}
-        {!collapsed && <span className="hidden lg:inline">Collapse</span>}
-      </button>
+              {/* Floating Tooltip */}
+              <span
+                className="absolute left-14 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-xl border px-3 py-1.5 text-xs font-bold shadow-xl opacity-0 pointer-events-none transition-all group-hover:opacity-100 group-hover:left-16"
+                style={{
+                  backgroundColor: "var(--bg-main)",
+                  borderColor: "var(--border-strong)",
+                  color: "var(--text-main)",
+                }}
+              >
+                {item.label}
+              </span>
+            </div>
+          );
+        })}
+      </nav>
     </aside>
   );
 }
+

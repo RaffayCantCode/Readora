@@ -59,8 +59,41 @@ export function HomeThemeProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <HomeThemeContext.Provider value={{ theme, setTheme, reduceMotion, setReduceMotion }}>
-      <div className={`min-h-screen transition-colors duration-500 ${activeThemeClass}`} style={{ backgroundColor: "var(--bg-main)", color: "var(--text-main)" }}>
-        {children}
+      <div className={`relative min-h-screen transition-colors duration-700 ${activeThemeClass}`} style={{ backgroundColor: "var(--bg-main)", color: "var(--text-main)" }}>
+        {/* Atmosphere Vibe Backdrops */}
+        {theme === "library" && (
+          <div className="pointer-events-none fixed inset-0 z-0 opacity-80 transition-opacity duration-700">
+            {/* Warm Library Lantern Glow */}
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[500px] bg-[radial-gradient(ellipse_at_top,rgba(212,152,69,0.22)_0%,transparent_70%)]" />
+            <div className="absolute bottom-0 inset-x-0 h-64 bg-gradient-to-t from-black/60 to-transparent" />
+            <div className="wood-grain absolute inset-0 opacity-20" />
+          </div>
+        )}
+
+        {theme === "glass" && (
+          <div className="pointer-events-none fixed inset-0 z-0 opacity-90 transition-opacity duration-700">
+            {/* Frosted White Light Leak & Crystal Spheres */}
+            <div className="absolute -top-32 right-10 w-[600px] h-[600px] rounded-full bg-[radial-gradient(circle,rgba(255,255,255,0.12)_0%,transparent_70%)] blur-3xl" />
+            <div className="absolute top-1/3 -left-32 w-[500px] h-[500px] rounded-full bg-[radial-gradient(circle,rgba(255,255,255,0.08)_0%,transparent_70%)] blur-3xl" />
+            <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.04)_0%,transparent_50%)]" />
+          </div>
+        )}
+
+        {theme === "classic" && (
+          <div className="pointer-events-none fixed inset-0 z-0 opacity-50 transition-opacity duration-700">
+            <div className="paper-grain absolute inset-0 opacity-40" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_60%,rgba(0,0,0,0.04)_100%)]" />
+          </div>
+        )}
+
+        {theme === "dark" && (
+          <div className="pointer-events-none fixed inset-0 z-0 opacity-70 transition-opacity duration-700">
+            <div className="absolute top-0 right-1/4 w-[700px] h-[400px] bg-[radial-gradient(ellipse_at_top,rgba(229,152,25,0.08)_0%,transparent_70%)] blur-2xl" />
+          </div>
+        )}
+
+        {/* Page Content */}
+        <div className="relative z-10">{children}</div>
       </div>
     </HomeThemeContext.Provider>
   );

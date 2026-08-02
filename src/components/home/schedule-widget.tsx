@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronLeft, ChevronRight, Check } from "lucide-react";
-import Image from "next/image";
+import { ChevronLeft, ChevronRight, Users, UserPlus } from "lucide-react";
 
 const days = [
   { day: "Sun", date: 11, active: false },
@@ -14,24 +13,7 @@ const days = [
   { day: "Sat", date: 17, active: false },
 ];
 
-const friends = [
-  {
-    id: 1,
-    name: "Roberto Jordan",
-    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80",
-    comment: "What a delightful and magical chapter it is! It indeed transports readers to the wizarding world..",
-    chapter: "Chapter-Five: Diagon Alley",
-    time: "2 min ago",
-  },
-  {
-    id: 2,
-    name: "Anna Henry",
-    avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80",
-    comment: "I finished reading the chapter last night and the plot twist left me completely speechless!",
-    chapter: "Chapter-Eight: The Potions Master",
-    time: "1 hour ago",
-  },
-];
+
 
 export function ScheduleWidget() {
   const [selectedDay, setSelectedDay] = useState(13);
@@ -79,40 +61,43 @@ export function ScheduleWidget() {
         </div>
       </div>
 
-      {/* 2. Reader Friends */}
+      {/* 2. Reader Friends Section */}
       <div className="rounded-3xl border p-6 shadow-sm" style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--border-subtle)" }}>
-        <div className="mb-6 flex items-center justify-between">
+        <div className="mb-4 flex items-center justify-between">
           <h3 className="font-display text-lg font-bold" style={{ color: "var(--text-main)" }}>
             Reader Friends
           </h3>
-          <span className="text-xs font-semibold tracking-widest uppercase opacity-40">••</span>
+          <span className="rounded-full bg-brass/20 px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-wider text-brass">
+            Social
+          </span>
         </div>
 
-        {/* Friends Activity Feed */}
-        <div className="space-y-6">
-          {friends.map((f) => (
-            <div key={f.id} className="flex gap-4">
-              <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full border shadow-xs" style={{ borderColor: "var(--border-subtle)" }}>
-                <Image src={f.avatar} alt={f.name} fill className="object-cover" unoptimized />
-              </div>
+        {/* Add Friends Social Feature Card */}
+        <div className="flex flex-col items-center justify-center p-6 text-center rounded-2xl border space-y-4" style={{ backgroundColor: "var(--bg-desk)", borderColor: "var(--border-subtle)" }}>
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl border shadow-inner" style={{ borderColor: "var(--border-subtle)", backgroundColor: "var(--bg-surface)", color: "var(--accent-brass)" }}>
+            <Users size={22} />
+          </div>
 
-              <div className="space-y-1 min-w-0">
-                <h4 className="text-xs font-bold" style={{ color: "var(--text-main)" }}>
-                  {f.name}
-                </h4>
-                <p className="text-xs italic leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                  {`"${f.comment}"`}
-                </p>
+          <div className="space-y-1">
+            <h4 className="font-display text-sm font-bold" style={{ color: "var(--text-main)" }}>
+              Connect With Readers
+            </h4>
+            <p className="text-xs leading-relaxed" style={{ color: "var(--text-dim)" }}>
+              Add friends and see what they have been up to!
+            </p>
+          </div>
 
-                <div className="flex items-center justify-between text-[10px] pt-1" style={{ color: "var(--text-dim)" }}>
-                  <span className="flex items-center gap-1 font-semibold" style={{ color: "var(--accent-brass)" }}>
-                    <Check size={11} /> {f.chapter}
-                  </span>
-                  <span>{f.time}</span>
-                </div>
-              </div>
-            </div>
-          ))}
+          <button
+            onClick={() => alert("Social features coming soon! You will be able to add friends and share notes.")}
+            className="flex items-center gap-2 rounded-xl px-5 py-2.5 text-xs font-bold uppercase tracking-wider shadow-md transition hover:scale-105 active:scale-95"
+            style={{
+              backgroundColor: "var(--accent-brass)",
+              color: "var(--bg-main)",
+            }}
+          >
+            <UserPlus size={14} />
+            <span>Add Friends</span>
+          </button>
         </div>
       </div>
     </aside>

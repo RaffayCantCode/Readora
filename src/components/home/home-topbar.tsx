@@ -1,6 +1,7 @@
 "use client";
 
-import { Search, Bell, LibraryBig, Sparkles, Layers, SunMoon } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Search, Bell, LibraryBig, Sparkles, Layers, SunMoon, Edit3 } from "lucide-react";
 import Image from "next/image";
 import { type HomeTheme, useHomeTheme } from "./home-theme-provider";
 
@@ -13,10 +14,28 @@ const themes: { id: HomeTheme; label: string; icon: React.ComponentType<{ size?:
 
 export function HomeTopbar({
   onSearch,
+  userName,
+  onEditName,
 }: {
   onSearch?: (query: string) => void;
+  userName?: string;
+  onEditName?: () => void;
 }) {
   const { theme, setTheme } = useHomeTheme();
+  const [displayName, setDisplayName] = useState(userName || "Reader");
+
+  useEffect(() => {
+    if (userName) {
+      setDisplayName(userName);
+      return;
+    }
+    try {
+      const saved = window.localStorage.getItem("readora-user-name");
+      if (saved) setDisplayName(saved);
+    } catch {
+      // fallback
+    }
+  }, [userName]);
 
   return (
     <header className="flex flex-col gap-4 border-b pb-4 pt-2 sm:flex-row sm:items-center sm:justify-between" style={{ borderColor: "var(--border-subtle)" }}>
@@ -72,21 +91,28 @@ export function HomeTopbar({
           <span className="absolute right-2 top-2 h-2 w-2 rounded-full" style={{ backgroundColor: "var(--accent-brass)" }} />
         </button>
 
-        {/* User Profile */}
-        <div className="flex items-center gap-3 border-l pl-4" style={{ borderColor: "var(--border-subtle)" }}>
-          <div className="relative h-10 w-10 overflow-hidden rounded-full border-2 shadow-sm" style={{ borderColor: "var(--accent-brass)" }}>
+        {/* User Profile Console */}
+        <div
+          onClick={onEditName}
+          className="flex items-center gap-3 border-l pl-4 cursor-pointer group"
+          style={{ borderColor: "var(--border-subtle)" }}
+        >
+          <div className="relative h-10 w-10 overflow-hidden rounded-full border-2 shadow-sm transition group-hover:scale-105" style={{ borderColor: "var(--accent-brass)" }}>
             <Image
               src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80"
-              alt="Alexander Mark"
+              alt={displayName}
               fill
               className="object-cover"
               unoptimized
             />
           </div>
           <div className="hidden sm:block">
-            <h4 className="text-xs font-bold leading-tight" style={{ color: "var(--text-main)" }}>
-              Alexander Mark
-            </h4>
+            <div className="flex items-center gap-1">
+              <h4 className="text-xs font-bold leading-tight group-hover:text-brass transition-colors" style={{ color: "var(--text-main)" }}>
+                {displayName}
+              </h4>
+              <Edit3 size={11} className="opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: "var(--accent-brass)" }} />
+            </div>
             <p className="text-[10px]" style={{ color: "var(--text-dim)" }}>
               Avid Collector
             </p>
@@ -96,3 +122,4 @@ export function HomeTopbar({
     </header>
   );
 }
+

@@ -23,83 +23,95 @@ button { font: inherit; }
 
 /* Themes System */
 
-/* 1. LIBRARY THEME (Default: Warm Wood, Mahogany, Brass, Leather, Warm Glow) */
+/* 1. LIBRARY THEME (Default: Warm Wood, Mahogany, Brass, Leather, Warm Lantern Glow) */
 .theme-library {
-  --bg-main: #0b0a09;
-  --bg-surface: #15110d;
-  --bg-desk: #241913;
-  --bg-shelf: #2c1e16;
-  --text-main: #f4efe4;
-  --text-muted: #c4b9a7;
-  --text-dim: #8c7e6b;
-  --accent-brass: #c78d3d;
-  --accent-glow: rgba(199, 141, 61, 0.15);
-  --border-subtle: rgba(255, 255, 255, 0.1);
-  --border-strong: rgba(199, 141, 61, 0.4);
-  --shelf-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.85);
-  --book-shadow: 14px 20px 36px rgba(0, 0, 0, 0.6), inset 8px 0 14px rgba(255, 255, 255, 0.07);
+  --bg-main: #0c0a08;
+  --bg-surface: #18130e;
+  --bg-desk: #281d16;
+  --bg-shelf: #33231a;
+  --text-main: #f5efe6;
+  --text-muted: #c9bdae;
+  --text-dim: #8e8071;
+  --accent-brass: #d49845;
+  --accent-glow: rgba(212, 152, 69, 0.18);
+  --border-subtle: rgba(212, 152, 69, 0.15);
+  --border-strong: rgba(212, 152, 69, 0.45);
+  --shelf-shadow: 0 28px 56px -12px rgba(0, 0, 0, 0.9);
+  --book-shadow: 16px 24px 40px rgba(0, 0, 0, 0.75), inset 8px 0 16px rgba(255, 255, 255, 0.08);
 }
 
-/* 2. CLASSIC THEME (White Bone Paper, Clean Surface, Sharp Typography, Minimal) */
+/* 2. CLASSIC / PAPER THEME (Cozy Bone Parchment, Deep Sepia Ink, Warm Ivory Surfaces) */
 .theme-classic {
-  --bg-main: #f7f5f0;
-  --bg-surface: #ffffff;
-  --bg-desk: #efece4;
-  --bg-shelf: #e5e0d4;
-  --text-main: #1c1917;
-  --text-muted: #57534e;
-  --text-dim: #8c857b;
-  --accent-brass: #9a6627;
-  --accent-glow: rgba(154, 102, 39, 0.08);
-  --border-subtle: rgba(0, 0, 0, 0.08);
-  --border-strong: rgba(0, 0, 0, 0.25);
-  --shelf-shadow: 0 12px 28px -8px rgba(0, 0, 0, 0.12);
-  --book-shadow: 8px 14px 24px rgba(0, 0, 0, 0.15), inset 4px 0 8px rgba(0, 0, 0, 0.05);
+  --bg-main: #eae3d2;
+  --bg-surface: #f5efe0;
+  --bg-desk: #dfd7c2;
+  --bg-shelf: #d5cca7;
+  --text-main: #27221b;
+  --text-muted: #5e5446;
+  --text-dim: #8a7c68;
+  --accent-brass: #8c571e;
+  --accent-glow: rgba(140, 87, 30, 0.12);
+  --border-subtle: rgba(39, 34, 27, 0.12);
+  --border-strong: rgba(39, 34, 27, 0.35);
+  --shelf-shadow: 0 14px 28px -8px rgba(39, 34, 27, 0.15);
+  --book-shadow: 10px 16px 28px rgba(39, 34, 27, 0.2), inset 4px 0 8px rgba(0, 0, 0, 0.05);
 }
 
-/* 3. GLASS THEME (Frosted Modern Glass, Sleek Reflections, Blur, Translucent Ledges) */
+/* 3. GLASS THEME (Liquid Frosted Glass, Specular Bevel Highlights, High Blur) */
 .theme-glass {
-  --bg-main: #07090e;
-  --bg-surface: rgba(15, 23, 42, 0.65);
-  --bg-desk: rgba(30, 41, 59, 0.5);
-  --bg-shelf: rgba(255, 255, 255, 0.06);
-  --text-main: #f8fafc;
-  --text-muted: #94a3b8;
-  --text-dim: #64748b;
-  --accent-brass: #38bdf8;
-  --accent-glow: rgba(56, 189, 248, 0.2);
-  --border-subtle: rgba(255, 255, 255, 0.12);
-  --border-strong: rgba(56, 189, 248, 0.45);
-  --shelf-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.9);
-  --book-shadow: 16px 24px 40px rgba(0, 0, 0, 0.7), inset 0 0 12px rgba(255, 255, 255, 0.15);
+  --bg-main: #080a10;
+  --bg-surface: rgba(255, 255, 255, 0.07);
+  --bg-desk: rgba(255, 255, 255, 0.04);
+  --bg-shelf: rgba(255, 255, 255, 0.12);
+  --text-main: #ffffff;
+  --text-muted: rgba(255, 255, 255, 0.82);
+  --text-dim: rgba(255, 255, 255, 0.52);
+  --accent-brass: #ffffff;
+  --accent-glow: rgba(255, 255, 255, 0.2);
+  --border-subtle: rgba(255, 255, 255, 0.2);
+  --border-strong: rgba(255, 255, 255, 0.45);
+  --shelf-shadow: 0 32px 64px -12px rgba(0, 0, 0, 0.9);
+  --book-shadow: 16px 24px 44px rgba(0, 0, 0, 0.7), inset 0 0 14px rgba(255, 255, 255, 0.25);
 }
 
-/* 4. DARK THEME (Pure Obsidian Minimal Black, Soft High-Contrast, Night Reading) */
+/* 4. DARK THEME (Onyx, Jet Black, Graphite, Platinum & Ash) */
 .theme-dark {
-  --bg-main: #050505;
-  --bg-surface: #0d0d0d;
-  --bg-desk: #141414;
-  --bg-shelf: #1a1a1a;
-  --text-main: #e2e8f0;
-  --text-muted: #8a99ad;
-  --text-dim: #475569;
-  --accent-brass: #d97706;
-  --accent-glow: rgba(217, 119, 6, 0.14);
-  --border-subtle: rgba(255, 255, 255, 0.08);
-  --border-strong: rgba(255, 255, 255, 0.25);
-  --shelf-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.95);
+  --bg-main: #1A1A1A;
+  --bg-surface: #222526;
+  --bg-desk: #353A3E;
+  --bg-shelf: #2a2d30;
+  --text-main: #E0E0E0;
+  --text-muted: #BFBFBF;
+  --text-dim: #8e9399;
+  --accent-brass: #E0E0E0;
+  --accent-glow: rgba(224, 224, 224, 0.15);
+  --border-subtle: rgba(191, 191, 191, 0.18);
+  --border-strong: rgba(224, 224, 224, 0.38);
+  --shelf-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.9);
   --book-shadow: 12px 18px 30px rgba(0, 0, 0, 0.8), inset 6px 0 12px rgba(255, 255, 255, 0.05);
 }
 
 @layer utilities {
   .eyebrow { letter-spacing: 0.22em; text-transform: uppercase; font-size: 0.68rem; font-weight: 700; }
   
-  /* Wood Texture Overlay for Library Desk */
-  .wood-grain {
-    background-image: 
-      linear-gradient(90deg, rgba(255, 255, 255, 0.03), transparent 25%, rgba(0, 0, 0, 0.08) 75%),
-      repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.03) 0 2px, transparent 2px 8px),
-      radial-gradient(ellipse at 50% 0%, rgba(199, 141, 61, 0.15), transparent 70%);
+  /* Liquid Glass UI Card (Inspired by reference Liquid Glass Kit) */
+  .liquid-glass-card {
+    background: rgba(255, 255, 255, 0.06);
+    backdrop-filter: blur(28px) saturate(190%);
+    -webkit-backdrop-filter: blur(28px) saturate(190%);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    box-shadow: 
+      0 24px 48px -12px rgba(0, 0, 0, 0.6),
+      inset 0 1px 1px rgba(255, 255, 255, 0.4),
+      inset 0 -1px 1px rgba(0, 0, 0, 0.2);
+  }
+
+  .glass-pill {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
   }
 
   /* Paper Grain for Classic Theme */
@@ -123,21 +135,53 @@ button { font: inherit; }
       inset -10px 0 14px rgba(0, 0, 0, 0.35);
   }
 
-  /* Shelf Surface Ledge */
-  .shelf-ledge {
-    position: relative;
+  /* 3D Perspective & Dynamic Transforms */
+  .perspective-1000 {
+    perspective: 1000px;
   }
-  .shelf-ledge::after {
+  .preserve-3d {
+    transform-style: preserve-3d;
+  }
+
+  /* Authentic Physical Shelf Ledge */
+  .shelf-ledge-wood {
+    position: relative;
+    background: linear-gradient(180deg, #2d1f17 0%, #1c130d 100%);
+    border-top: 3px solid #d49845;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8), inset 0 2px 4px rgba(255, 255, 255, 0.1);
+  }
+  .shelf-ledge-wood::after {
     content: "";
     position: absolute;
-    left: -2%;
-    right: -2%;
-    bottom: -16px;
-    height: 16px;
-    background: linear-gradient(180deg, var(--bg-shelf), rgba(0, 0, 0, 0.4));
-    border-top: 2px solid var(--accent-brass);
-    box-shadow: 0 14px 28px rgba(0, 0, 0, 0.5);
-    border-radius: 2px;
+    bottom: -14px;
+    left: 0;
+    right: 0;
+    height: 14px;
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0.6), transparent);
+  }
+
+  .shelf-ledge-glass {
+    position: relative;
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-top: 2px solid rgba(255, 255, 255, 0.4);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  }
+
+  .shelf-ledge-classic {
+    position: relative;
+    background: linear-gradient(180deg, #e5e0d4 0%, #d8d2c4 100%);
+    border-top: 2px solid #9a6627;
+    box-shadow: 0 14px 28px rgba(0, 0, 0, 0.12);
+  }
+
+  .shelf-ledge-dark {
+    position: relative;
+    background: linear-gradient(180deg, #1c1c1c 0%, #111111 100%);
+    border-top: 2px solid #e59819;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.9);
   }
 
   /* Reading Desk Surface */
@@ -153,3 +197,4 @@ button { font: inherit; }
   html { scroll-behavior: auto; }
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
 }
+
