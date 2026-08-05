@@ -1,347 +1,336 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ArrowLeft, BookOpen, Layers } from "lucide-react";
+import { ArrowLeft, Star, Book, Smartphone, Headphones, ShoppingBag, UserCheck, Loader2, UploadCloud } from "lucide-react";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import type { BookMetadata, SearchResponse } from "@/lib/books/types";
-import { fixtureBooks } from "@/lib/library/fixtures";
-import { Book3D } from "@/components/ui/book-3d";
-import { HomeThemeProvider, useHomeTheme } from "@/components/home/home-theme-provider";
-
-type BookWithCollection = BookMetadata & { collection?: string };
+import { ImportModal } from "@/components/import/import-modal";
 
 export function BookDetailPageClient({ bookId }: { bookId: string }) {
-  return (
-    <HomeThemeProvider>
-      <BookDetailContent bookId={bookId} />
-    </HomeThemeProvider>
-  );
-}
-
-function BookDetailContent({ bookId }: { bookId: string }) {
-  const { reduceMotion } = useHomeTheme();
-  const [book, setBook] = useState<BookWithCollection | null>(null);
-  const [seriesBooks, setSeriesBooks] = useState<BookWithCollection[]>([]);
-  const [similarBooks, setSimilarBooks] = useState<BookWithCollection[]>([]);
+  const [book, setBook] = useState<BookMetadata | null>(null);
+  const [recommended, setRecommended] = useState<BookMetadata[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedFormat, setSelectedFormat] = useState<"hardback" | "digital" | "audio">("hardback");
+  const [showImportModal, setShowImportModal] = useState(false);
 
   useEffect(() => {
     async function loadBookData() {
-      // 1. Find book from fixtures or query
-      const decodedId = decodeURIComponent(bookId);
-      const fixtureMatch = fixtureBooks.find(
-        (b) => b.id === decodedId || b.title.toLowerCase() === decodedId.toLowerCase()
-      );
+      setLoading(true);
+      const cleanTerm = bookId.replace(/^(openlibrary:|googlebooks:|fixture:|catalog:)/, "");
 
-      let currentBook: BookWithCollection | null = fixtureMatch ?? null;
+      try {
+        const response = await fetch(`/api/books/search?q=${encodeURIComponent(cleanTerm)}&type=title&limit=6`);
+        const payload = (await response.json()) as SearchResponse;
 
-      if (!currentBook) {
-        try {
-          const res = await fetch(`/api/books/search?q=${encodeURIComponent(decodedId)}&limit=6`);
-          const data = (await res.json()) as SearchResponse;
-          if (data.items && data.items.length > 0) {
-            currentBook = data.items[0] as BookWithCollection;
+        if (payload.items && payload.items.length > 0) {
+          setBook(payload.items[0]);
+          if (payload.items.length > 1) {
+            setRecommended(payload.items.slice(1, 5));
           }
-        } catch {
-          // fallback
-        }
-      }
-
-      if (!currentBook) {
-        currentBook = fixtureBooks[0];
-      }
-
-      setBook(currentBook);
-
-      // 2. Determine Series or Similar Books
-      // Check if book is part of a known collection or series (e.g. Wizarding World / Harry Potter)
-      const isWizarding = currentBook.collection === "Wizarding World" || currentBook.title.toLowerCase().includes("harry potter");
-      
-      if (isWizarding) {
-        // Collect all series books
-        const hpBooks = fixtureBooks.filter((b) => b.collection === "Wizarding World" || b.title.toLowerCase().includes("harry potter"));
-        setSeriesBooks(hpBooks);
-        setSimilarBooks([]);
-      } else {
-        // Check fixture collection or fetch similar
-        const sameCollection = fixtureBooks.filter((b) => b.id !== currentBook.id && (b.collection === currentBook.collection || b.authors[0] === currentBook.authors[0]));
-        
-        if (sameCollection.length > 0) {
-          setSeriesBooks(sameCollection);
-          setSimilarBooks([]);
         } else {
-          // Similar titles based on subjects
-          const fallbackSimilar = fixtureBooks.filter((b) => b.id !== currentBook.id).slice(0, 4);
-          setSeriesBooks([]);
-          setSimilarBooks(fallbackSimilar);
+          const altRes = await fetch(`/api/books/trending?limit=6`);
+          const altPayload = (await altRes.json()) as SearchResponse;
+          if (altPayload.items && altPayload.items.length > 0) {
+            setRecommended(altPayload.items.slice(0, 4));
+          }
         }
+      } catch {
+        // Safe handling
+      } finally {
+        setLoading(false);
       }
     }
 
     loadBookData();
   }, [bookId]);
 
-  const activeBook = book ?? fixtureBooks[0];
-  const isSeries = seriesBooks.length > 0;
-  const sidebarItems = isSeries ? seriesBooks : similarBooks;
+  const fallbackTitle = decodeURIComponent(bookId.replace(/^(openlibrary:|googlebooks:|fixture:|catalog:)/, "")).replace(/[-_]/g, " ");
 
-  // Mock editorial review data
-  const sampleReview = {
-    author: "Christopher Reath",
-    avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
-    quote: "A breathtaking achievement in worldbuilding and editorial craftsmanship. An essential masterwork for any serious catalog.",
+  const activeBook: BookMetadata = book ?? {
+    id: bookId,
+    title: fallbackTitle.charAt(0).toUpperCase() + fallbackTitle.slice(1),
+    authors: ["Featured Author"],
+    description: `An extraordinary edition of ${fallbackTitle} from the open catalog metadata engine.`,
+    subjects: ["Literature", "Fiction"],
+    publishedYear: 2024,
+    publisher: "Open Edition Archive",
+    pageCount: 348,
+    isbns: ["9780000000000"],
+    coverUrl: undefined,
+    sourceLinks: [],
+    providerIds: {},
+    source: "merged",
   };
 
   return (
-    <div className="min-h-screen flex flex-col font-sans" style={{ backgroundColor: "var(--bg-main)", color: "var(--text-main)" }}>
-      {/* Top Header Rail */}
-      <header className="border-b py-4 px-6 sm:px-12 flex items-center justify-between" style={{ borderColor: "var(--border-subtle)", backgroundColor: "var(--bg-surface)" }}>
-        <Link href="/" className="font-display text-xl font-bold tracking-tight flex items-center gap-2" style={{ color: "var(--text-main)" }}>
-          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-brass text-black font-extrabold text-xs">R</span>
-          <span>readora</span>
-        </Link>
-
-        <span className="text-xs uppercase font-extrabold tracking-widest text-dim hidden sm:inline" style={{ color: "var(--text-dim)" }}>
-          Book Detail
-        </span>
-
-        <Link
-          href="/"
-          className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider transition hover:text-brass"
-          style={{ color: "var(--text-main)" }}
-        >
-          <ArrowLeft size={15} />
-          <span>Back to Library</span>
-        </Link>
-      </header>
-
-      {/* Main Content Layout matching Gestalten Editorial Reference */}
-      <main className="flex-1 mx-auto w-full max-w-[1520px] p-6 sm:p-10 lg:p-12">
-        <div className="grid grid-cols-1 lg:grid-cols-[340px_1fr_280px] gap-10 lg:gap-14 items-start">
-          
-          {/* LEFT COLUMN: 3D Cover Stage */}
-          <div className="flex flex-col items-center justify-center pt-4">
-            <div className="relative flex items-center justify-center w-full aspect-square max-w-[320px]">
-              {/* Subtle Ambient Disc Highlight behind cover */}
-              <div
-                className="absolute inset-4 rounded-full opacity-30 transition-all"
-                style={{
-                  background: "radial-gradient(circle, var(--accent-brass) 0%, transparent 70%)",
-                  filter: "blur(24px)",
-                }}
-              />
-
-              {/* 3D Interactive Hardcover */}
-              <motion.div
-                initial={reduceMotion ? false : { opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.5 }}
-                className="relative z-10"
-              >
-                <Book3D book={activeBook} size="lg" showMetadata={false} />
-              </motion.div>
-            </div>
-
-            {/* Click preview prompt */}
-            <Link
-              href={`/reader`}
-              className="mt-6 flex items-center gap-2 text-[10px] uppercase tracking-[0.25em] font-extrabold transition hover:scale-105"
-              style={{ color: "var(--text-dim)" }}
-            >
-              <BookOpen size={13} style={{ color: "var(--accent-brass)" }} />
-              <span>Click for preview</span>
-            </Link>
-          </div>
-
-          {/* CENTER COLUMN: Editorial Specifications & Description */}
-          <div className="space-y-8 max-w-2xl">
-            {/* Title & Author */}
-            <div>
-              <div className="flex flex-wrap items-center gap-2 mb-3">
-                {activeBook.subjects?.slice(0, 3).map((sub) => (
-                  <span
-                    key={sub}
-                    className="rounded-full border px-3 py-0.5 text-[10px] font-bold uppercase tracking-wider"
-                    style={{
-                      borderColor: "var(--border-subtle)",
-                      color: "var(--accent-brass)",
-                      backgroundColor: "var(--accent-glow)",
-                    }}
-                  >
-                    {sub}
-                  </span>
-                ))}
-              </div>
-
-              <h1 className="font-display text-4xl sm:text-5xl font-bold tracking-tight leading-none" style={{ color: "var(--text-main)" }}>
-                {activeBook.title}
-              </h1>
-
-              <p className="mt-3 text-xs sm:text-sm font-bold uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>
-                by {activeBook.authors.join(", ")}
-              </p>
-            </div>
-
-            {/* Italicized Lead Summary Quote */}
-            <div className="border-l-2 pl-4 py-1" style={{ borderColor: "var(--accent-brass)" }}>
-              <p className="font-serif italic text-base sm:text-lg leading-relaxed opacity-90" style={{ color: "var(--text-main)" }}>
-                {activeBook.description ? `"${activeBook.description.slice(0, 140)}..."` : `"An extraordinary story of adventure and discovery, bringing rare editorial craftsmanship to life."`}
-              </p>
-            </div>
-
-            {/* Full Body Description */}
-            <p className="text-xs sm:text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
-              {activeBook.description ?? "Here in this remarkable work, the author presents a stunning narrative that spans vast horizons. For generations, readers have cherished the intricate world-building, deep characters, and unforgettable prose."}
-            </p>
-
-            {/* Editorial Specifications Grid matching Reference */}
-            <div className="border-y py-6 grid grid-cols-2 sm:grid-cols-3 gap-y-4 gap-x-6 text-xs" style={{ borderColor: "var(--border-subtle)" }}>
-              <div>
-                <span className="block text-[10px] uppercase tracking-wider font-semibold opacity-50 mb-0.5" style={{ color: "var(--text-dim)" }}>
-                  Publisher
-                </span>
-                <span className="font-semibold" style={{ color: "var(--text-main)" }}>
-                  {activeBook.publisher ?? "Gestalten Press"}
-                </span>
-              </div>
-
-              <div>
-                <span className="block text-[10px] uppercase tracking-wider font-semibold opacity-50 mb-0.5" style={{ color: "var(--text-dim)" }}>
-                  Release Date
-                </span>
-                <span className="font-semibold" style={{ color: "var(--text-main)" }}>
-                  {activeBook.publishedYear ?? "May 2017"}
-                </span>
-              </div>
-
-              <div>
-                <span className="block text-[10px] uppercase tracking-wider font-semibold opacity-50 mb-0.5" style={{ color: "var(--text-dim)" }}>
-                  Format
-                </span>
-                <span className="font-semibold" style={{ color: "var(--text-main)" }}>
-                  Hardcover (21 x 26 cm)
-                </span>
-              </div>
-
-              <div>
-                <span className="block text-[10px] uppercase tracking-wider font-semibold opacity-50 mb-0.5" style={{ color: "var(--text-dim)" }}>
-                  Features
-                </span>
-                <span className="font-semibold" style={{ color: "var(--text-main)" }}>
-                  Full color, {activeBook.pageCount ?? 256} pages
-                </span>
-              </div>
-
-              <div>
-                <span className="block text-[10px] uppercase tracking-wider font-semibold opacity-50 mb-0.5" style={{ color: "var(--text-dim)" }}>
-                  Language
-                </span>
-                <span className="font-semibold" style={{ color: "var(--text-main)" }}>
-                  English
-                </span>
-              </div>
-
-              <div>
-                <span className="block text-[10px] uppercase tracking-wider font-semibold opacity-50 mb-0.5" style={{ color: "var(--text-dim)" }}>
-                  ISBN
-                </span>
-                <span className="font-semibold font-mono text-[11px]" style={{ color: "var(--text-main)" }}>
-                  {activeBook.isbns?.[0] ?? "978-3-89955-698-8"}
-                </span>
-              </div>
-            </div>
-
-            {/* Reader Review Section */}
-            <div className="pt-2 space-y-3">
-              <div className="flex items-center gap-3">
-                <div className="relative h-10 w-10 overflow-hidden rounded-full border border-brass shadow-sm">
-                  <Image src={sampleReview.avatar} alt={sampleReview.author} fill className="object-cover" unoptimized />
-                </div>
-                <div>
-                  <span className="block text-[10px] uppercase tracking-wider font-semibold opacity-60" style={{ color: "var(--text-dim)" }}>
-                    Reviewed By
-                  </span>
-                  <strong className="text-xs font-bold" style={{ color: "var(--text-main)" }}>
-                    {sampleReview.author}
-                  </strong>
-                </div>
-              </div>
-              <p className="font-serif italic text-xs leading-relaxed opacity-85" style={{ color: "var(--text-muted)" }}>
-                &ldquo;{sampleReview.quote}&rdquo;
-              </p>
-            </div>
-          </div>
-
-          {/* RIGHT COLUMN: Bookshelf Rail (Series or Similar Titles) */}
-          <div className="rounded-3xl border p-6 space-y-6 shadow-xl" style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--border-subtle)" }}>
-            {/* Header */}
-            <div className="flex items-center justify-between border-b pb-4" style={{ borderColor: "var(--border-subtle)" }}>
-              <div>
-                <span className="eyebrow block" style={{ color: "var(--accent-brass)" }}>
-                  {isSeries ? "Book Series" : "Recommendations"}
-                </span>
-                <h3 className="font-display text-lg font-bold" style={{ color: "var(--text-main)" }}>
-                  {isSeries ? (activeBook.collection ?? "Series Collection") : "Similar Titles"}
-                </h3>
-              </div>
-              <Layers size={18} style={{ color: "var(--accent-brass)" }} />
-            </div>
-
-            {/* Stack of Series / Similar Books */}
-            <div className="space-y-5">
-              {sidebarItems.map((item) => {
-                const isActive = item.id === activeBook.id;
-                return (
-                  <Link
-                    key={item.id}
-                    href={`/book/${encodeURIComponent(item.id)}`}
-                    className={`group relative flex items-center gap-4 rounded-2xl p-3 border transition duration-300 ${
-                      isActive ? "shadow-md scale-[1.02]" : "hover:scale-[1.02]"
-                    }`}
-                    style={{
-                      backgroundColor: isActive ? "var(--bg-desk)" : "var(--bg-main)",
-                      borderColor: isActive ? "var(--accent-brass)" : "var(--border-subtle)",
-                    }}
-                  >
-                    {/* Active Accent Bar on Left */}
-                    {isActive && (
-                      <div className="absolute left-0 top-3 bottom-3 w-1 rounded-r bg-brass" />
-                    )}
-
-                    {/* Book Mini Cover */}
-                    <div className="relative aspect-[2/3] w-14 shrink-0 overflow-hidden rounded-md border spine-3d shadow" style={{ borderColor: "var(--border-subtle)" }}>
-                      {item.coverUrl ? (
-                        <Image src={item.coverUrl} alt={item.title} fill className="object-cover" unoptimized />
-                      ) : (
-                        <div className="book-cloth absolute inset-0 p-1 flex items-center justify-center text-center font-display text-[8px] font-bold text-parchment">
-                          {item.title}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Metadata */}
-                    <div className="min-w-0 flex-1">
-                      <h4 className={`truncate font-display text-xs font-bold transition-colors ${isActive ? "text-brass" : "group-hover:text-brass"}`} style={{ color: isActive ? "var(--accent-brass)" : "var(--text-main)" }}>
-                        {item.title}
-                      </h4>
-                      <p className="truncate text-[10px] mt-0.5" style={{ color: "var(--text-dim)" }}>
-                        {item.authors[0]}
-                      </p>
-                      {isActive && (
-                        <span className="mt-1 inline-block rounded bg-brass/20 px-1.5 py-0.5 text-[8px] font-extrabold uppercase tracking-wider text-brass">
-                          Currently Viewing
-                        </span>
-                      )}
-                    </div>
-                  </Link>
-                );
-              })}
-            </div>
-          </div>
-
+    <div className="min-h-screen flex flex-col font-sans transition-colors duration-500" style={{ backgroundColor: "var(--bg-main)", color: "var(--text-main)" }}>
+      <main className="flex-1 mx-auto w-full max-w-[1400px] p-4 sm:p-8 lg:p-12">
+        {/* Navigation back link */}
+        <div className="mb-8 flex items-center justify-between border-b pb-4" style={{ borderColor: "var(--border-subtle)" }}>
+          <Link
+            href="/"
+            className="flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider transition hover:opacity-80"
+            style={{ color: "var(--accent-brass)" }}
+          >
+            <ArrowLeft size={16} />
+            <span>To catalog</span>
+          </Link>
+          <span className="text-xs font-semibold" style={{ color: "var(--text-dim)" }}>
+            Live Edition View
+          </span>
         </div>
+
+        {loading ? (
+          <div className="flex min-h-[400px] flex-col items-center justify-center gap-3">
+            <Loader2 className="animate-spin text-brass" size={32} />
+            <p className="text-xs" style={{ color: "var(--text-dim)" }}>Fetching live edition specifications from open catalog APIs...</p>
+          </div>
+        ) : (
+          <div className="space-y-12">
+            {/* Main Editorial Layout matching Reference Image 2 */}
+            <div className="grid gap-10 lg:grid-cols-[120px_320px_1fr]">
+              {/* 1. Format Selection Tabs */}
+              <div className="flex flex-row lg:flex-col gap-3">
+                <button
+                  onClick={() => setSelectedFormat("hardback")}
+                  className={`flex flex-col items-center justify-center rounded-2xl p-4 text-center transition-all ${
+                    selectedFormat === "hardback" ? "shadow-lg scale-105" : "border opacity-70 hover:opacity-100"
+                  }`}
+                  style={{
+                    backgroundColor: selectedFormat === "hardback" ? "var(--accent-brass)" : "var(--bg-surface)",
+                    color: selectedFormat === "hardback" ? "var(--bg-main)" : "var(--text-main)",
+                    borderColor: "var(--border-strong)",
+                  }}
+                >
+                  <Book size={20} />
+                  <span className="mt-2 text-[11px] font-bold">Hardback</span>
+                  <span className="text-xs font-extrabold">$25</span>
+                </button>
+
+                <button
+                  onClick={() => setSelectedFormat("digital")}
+                  className={`flex flex-col items-center justify-center rounded-2xl p-4 text-center transition-all ${
+                    selectedFormat === "digital" ? "shadow-lg scale-105" : "border opacity-70 hover:opacity-100"
+                  }`}
+                  style={{
+                    backgroundColor: selectedFormat === "digital" ? "var(--accent-brass)" : "var(--bg-surface)",
+                    color: selectedFormat === "digital" ? "var(--bg-main)" : "var(--text-main)",
+                    borderColor: "var(--border-strong)",
+                  }}
+                >
+                  <Smartphone size={20} />
+                  <span className="mt-2 text-[11px] font-bold">Digital</span>
+                  <span className="text-xs font-extrabold">$20</span>
+                </button>
+
+                <button
+                  onClick={() => setSelectedFormat("audio")}
+                  className={`flex flex-col items-center justify-center rounded-2xl p-4 text-center transition-all ${
+                    selectedFormat === "audio" ? "shadow-lg scale-105" : "border opacity-70 hover:opacity-100"
+                  }`}
+                  style={{
+                    backgroundColor: selectedFormat === "audio" ? "var(--accent-brass)" : "var(--bg-surface)",
+                    color: selectedFormat === "audio" ? "var(--bg-main)" : "var(--text-main)",
+                    borderColor: "var(--border-strong)",
+                  }}
+                >
+                  <Headphones size={20} />
+                  <span className="mt-2 text-[11px] font-bold">Audio</span>
+                  <span className="text-xs font-extrabold">$25</span>
+                </button>
+              </div>
+
+              {/* 2. Hero 3D Book Jacket */}
+              <div className="relative flex justify-center items-start">
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="relative aspect-[2/3] w-72 overflow-hidden rounded-2xl border spine-3d shadow-2xl"
+                  style={{ borderColor: "var(--border-strong)", backgroundColor: "var(--bg-desk)" }}
+                >
+                  {activeBook.coverUrl ? (
+                    <Image src={activeBook.coverUrl} alt={activeBook.title} fill sizes="300px" priority className="object-cover" unoptimized />
+                  ) : (
+                    <div className="book-cloth absolute inset-0 p-6 flex flex-col justify-between" style={{ backgroundColor: "#1e1815", color: "#f4efe4" }}>
+                      <div>
+                        <p className="text-[10px] uppercase tracking-widest opacity-60">Readora Edition</p>
+                        <h4 className="mt-4 font-display text-2xl font-bold leading-tight">{activeBook.title}</h4>
+                      </div>
+                      <p className="text-xs opacity-75">{activeBook.authors.join(", ")}</p>
+                    </div>
+                  )}
+
+                  {/* Floating Category Tag */}
+                  <span className="absolute top-4 right-4 rounded-lg bg-amber-500 px-2.5 py-1 text-[11px] font-extrabold text-black uppercase tracking-wider shadow-md">
+                    {activeBook.subjects?.[0] ?? "Literature"}
+                  </span>
+                </motion.div>
+              </div>
+
+              {/* 3. Specs & Metadata Column */}
+              <div className="space-y-6">
+                <div>
+                  <h1 className="font-display text-4xl font-bold leading-tight sm:text-5xl" style={{ color: "var(--text-main)" }}>
+                    {activeBook.title}
+                  </h1>
+                  <div className="mt-3 flex items-center gap-3 text-sm" style={{ color: "var(--text-dim)" }}>
+                    <span>By {activeBook.authors.join(", ")}</span>
+                    <span>|</span>
+                    <span className="flex items-center gap-1 font-bold text-amber-500">
+                      5 <Star size={14} fill="currentColor" />
+                    </span>
+                  </div>
+                </div>
+
+                {/* Specifications Table matching Image 2 */}
+                <div className="space-y-3 border-y py-5 text-sm" style={{ borderColor: "var(--border-subtle)" }}>
+                  <div className="grid grid-cols-2">
+                    <span style={{ color: "var(--text-dim)" }}>Original Title</span>
+                    <span className="font-semibold" style={{ color: "var(--text-main)" }}>{activeBook.title}</span>
+                  </div>
+                  <div className="grid grid-cols-2">
+                    <span style={{ color: "var(--text-dim)" }}>Format</span>
+                    <span className="font-semibold" style={{ color: "var(--text-main)" }}>170 x 215 mm</span>
+                  </div>
+                  <div className="grid grid-cols-2">
+                    <span style={{ color: "var(--text-dim)" }}>Number of pages</span>
+                    <span className="font-semibold" style={{ color: "var(--text-main)" }}>{activeBook.pageCount ?? 348}</span>
+                  </div>
+                  <div className="grid grid-cols-2">
+                    <span style={{ color: "var(--text-dim)" }}>Year of issue</span>
+                    <span className="font-semibold" style={{ color: "var(--text-main)" }}>{activeBook.publishedYear ?? 2024}</span>
+                  </div>
+                  <div className="grid grid-cols-2">
+                    <span style={{ color: "var(--text-dim)" }}>ISBN</span>
+                    <span className="font-semibold" style={{ color: "var(--text-main)" }}>{activeBook.isbns?.[0] ?? "Available in Catalog"}</span>
+                  </div>
+                  <div className="grid grid-cols-2">
+                    <span style={{ color: "var(--text-dim)" }}>Circulation</span>
+                    <span className="font-semibold" style={{ color: "var(--text-main)" }}>Open Public Edition</span>
+                  </div>
+                </div>
+
+                {/* Price & Action Buttons */}
+                <div className="flex flex-wrap items-center justify-between gap-4 pt-2">
+                  <div>
+                    <span className="text-xs uppercase font-semibold" style={{ color: "var(--text-dim)" }}>Available</span>
+                    <div className="text-3xl font-black" style={{ color: "var(--text-main)" }}>$25</div>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    {/* Page-Specific Book Import Button */}
+                    <button
+                      onClick={() => setShowImportModal(true)}
+                      className="flex h-12 items-center gap-2 rounded-2xl border px-5 text-xs font-bold uppercase tracking-wider transition hover:border-strong"
+                      style={{
+                        borderColor: "var(--border-strong)",
+                        backgroundColor: "var(--bg-surface)",
+                        color: "var(--text-main)",
+                      }}
+                    >
+                      <UploadCloud size={16} className="text-brass" />
+                      <span>Import File</span>
+                    </button>
+
+                    <Link
+                      href="/library"
+                      className="flex h-12 items-center gap-2 rounded-2xl px-8 text-xs font-bold uppercase tracking-wider shadow-lg transition hover:scale-105 active:scale-95"
+                      style={{
+                        backgroundColor: "var(--text-main)",
+                        color: "var(--bg-main)",
+                      }}
+                    >
+                      <ShoppingBag size={16} />
+                      <span>Start Reading</span>
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Description & Persons Info Below */}
+            <div className="border-t pt-10 grid gap-10 md:grid-cols-[1fr_280px]" style={{ borderColor: "var(--border-subtle)" }}>
+              <div>
+                <h3 className="font-display text-2xl font-bold mb-4" style={{ color: "var(--text-main)" }}>
+                  Description
+                </h3>
+                <p className="text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
+                  {activeBook.description ?? "An extraordinary volume fetched live from open catalog metadata APIs."}
+                </p>
+              </div>
+
+              <div className="space-y-6">
+                <h3 className="font-display text-lg font-bold" style={{ color: "var(--text-main)" }}>
+                  Persons
+                </h3>
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full border text-sm" style={{ borderColor: "var(--border-subtle)", color: "var(--accent-brass)" }}>
+                    <UserCheck size={16} />
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold" style={{ color: "var(--text-main)" }}>{activeBook.authors[0]}</p>
+                    <p className="text-xs" style={{ color: "var(--text-dim)" }}>Author</p>
+                  </div>
+                </div>
+
+                <div className="pt-2">
+                  <span className="text-xs uppercase tracking-widest font-semibold block mb-1" style={{ color: "var(--text-dim)" }}>
+                    Publisher
+                  </span>
+                  <p className="font-display text-lg font-bold" style={{ color: "var(--text-main)" }}>
+                    {activeBook.publisher ?? "Open Catalog Edition"}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Also Recommended Live Shelf */}
+            {recommended.length > 0 && (
+              <div className="border-t pt-10" style={{ borderColor: "var(--border-subtle)" }}>
+                <h3 className="font-display text-2xl font-bold mb-6" style={{ color: "var(--text-main)" }}>
+                  Also Recommended
+                </h3>
+                <div className="grid grid-cols-2 gap-6 sm:grid-cols-4">
+                  {recommended.map((rec) => (
+                    <Link
+                      key={rec.id}
+                      href={`/book/${encodeURIComponent(rec.id)}`}
+                      className="group cursor-pointer flex flex-col transition hover:scale-105"
+                    >
+                      <div className="relative aspect-[2/3] w-full overflow-hidden rounded-xl border spine-3d shadow-md" style={{ backgroundColor: "var(--bg-desk)", borderColor: "var(--border-subtle)" }}>
+                        {rec.coverUrl ? (
+                          <Image src={rec.coverUrl} alt={rec.title} fill className="object-cover" unoptimized />
+                        ) : (
+                          <div className="book-cloth absolute inset-0 p-4 flex flex-col justify-between" style={{ backgroundColor: "#1e1815", color: "#f4efe4" }}>
+                            <p className="font-display text-sm font-bold">{rec.title}</p>
+                          </div>
+                        )}
+                      </div>
+                      <h4 className="mt-3 truncate font-display text-sm font-bold transition-colors group-hover:text-brass" style={{ color: "var(--text-main)" }}>
+                        {rec.title}
+                      </h4>
+                      <p className="truncate text-xs" style={{ color: "var(--text-dim)" }}>
+                        {rec.authors[0]}
+                      </p>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </main>
+
+      {/* Page-Specific Book Import Modal with Target Title Validation */}
+      {activeBook && (
+        <ImportModal
+          isOpen={showImportModal}
+          onClose={() => setShowImportModal(false)}
+          targetBookTitle={activeBook.title}
+        />
+      )}
     </div>
   );
 }

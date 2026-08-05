@@ -7,6 +7,18 @@ export async function withCache<T>(key: string, loader: () => Promise<T>, ttl = 
   const existing = cache.get(key);
   if (existing && existing.expiresAt > Date.now()) return existing.value as T;
   const value = await loader();
+
+  // Do not cache empty/degraded responses
+  if (
+    value &&
+    typeof value === "object" &&
+    "books" in value &&
+    Array.isArray((value as { books?: unknown[] }).books) &&
+    (value as { books?: unknown[] }).books?.length === 0
+  ) {
+    return value;
+  }
+
   cache.set(key, { value, expiresAt: Date.now() + ttl });
   return value;
 }

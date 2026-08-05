@@ -6,98 +6,126 @@ export type BookSeriesItem = {
   title: string;
   author: string;
   volumes: string;
-  chapters: string;
-  coverUrl: string;
-  extraCovers: string[];
+  description: string;
+  coverUrl?: string;
   sampleBook: BookMetadata;
 };
 
-// Popular real-world series search queries to fetch dynamically
-const FAMOUS_SERIES_QUERIES = [
-  { id: "series-dune", title: "Dune Chronicles", query: "Dune Frank Herbert", author: "Frank Herbert", volumes: "6 Volumes", defaultIsbns: ["9780441172719", "9780441104024"] },
-  { id: "series-potter", title: "Harry Potter Collection", query: "Harry Potter Rowling", author: "J.K. Rowling", volumes: "7 Volumes", defaultIsbns: ["9780439064873", "9780590353427"] },
-  { id: "series-ice-fire", title: "A Song of Ice & Fire", query: "Game of Thrones George R.R. Martin", author: "George R.R. Martin", volumes: "5 Volumes", defaultIsbns: ["9780553103540", "9780553805444"] },
-  { id: "series-wheel-time", title: "The Wheel of Time", query: "The Eye of the World Robert Jordan", author: "Robert Jordan", volumes: "14 Volumes", defaultIsbns: ["9780812511818", "9780812513751"] },
-  { id: "series-lotr", title: "The Lord of the Rings", query: "The Fellowship of the Ring Tolkien", author: "J.R.R. Tolkien", volumes: "3 Volumes", defaultIsbns: ["9780618640157", "9780618640164"] },
-  { id: "series-witcher", title: "The Witcher Saga", query: "The Last Wish Andrzej Sapkowski", author: "Andrzej Sapkowski", volumes: "8 Volumes", defaultIsbns: ["9780316029186", "9780316044912"] },
-];
+type WikiSearchResult = {
+  pageid: number;
+  title: string;
+  snippet: string;
+};
+
+type WikiSummary = {
+  type?: string;
+  title?: string;
+  extract?: string;
+  description?: string;
+  thumbnail?: { source?: string };
+  originalimage?: { source?: string };
+};
 
 export async function getLiveSeriesCollections(limit = 4): Promise<BookSeriesItem[]> {
-  const cacheKey = `live-series-collections-v2:${limit}`;
+  const cacheKey = `live-series-collections-v4:${limit}`;
 
   return withCache(cacheKey, async () => {
-    const seriesList: BookSeriesItem[] = [];
-    const queries = FAMOUS_SERIES_QUERIES.slice(0, limit);
+    const searchUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent("novel series")}&format=json&origin=*`;
 
-    await Promise.all(
-      queries.map(async (item) => {
-        try {
-          const params = new URLSearchParams({
-            q: item.query,
-            limit: "3",
-            fields: "key,title,author_name,first_publish_year,publisher,number_of_pages_median,isbn,cover_i,first_sentence",
-          });
-          const res = await fetch(`https://openlibrary.org/search.json?${params.toString()}`, {
-            headers: { Accept: "application/json", "User-Agent": "Readora API" },
-            next: { revalidate: 3600 },
-          });
+    try {
+      const response = await fetch(searchUrl, {
+        headers: {
+          Accept: "application/json",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Readora/1.0",
+        },
+        next: { revalidate: 3600 },
+      });
 
-          if (res.ok) {
-            const data = await res.json();
-            const docs = data.docs ?? [];
-            const doc = docs[0];
+      if (!response.ok) throw new Error("Wikipedia API returned " + response.status);
+      const payload = (await response.json()) as { query?: { search?: WikiSearchResult[] } };
 
-            if (doc) {
-              const primaryIsbn = doc.isbn?.[0] || item.defaultIsbns[0];
-              const coverUrl = doc.cover_i 
-                ? `https://covers.openlibrary.org/b/id/${doc.cover_i}-L.jpg` 
-                : `https://covers.openlibrary.org/b/isbn/${primaryIsbn}-L.jpg`;
+      const hits = (payload.query?.search ?? []).slice(0, 12);
 
-              const extraCovers: string[] = docs.slice(1, 3).map((d: { cover_i?: number; isbn?: string[] }, i: number) => {
-                if (d.cover_i) return `https://covers.openlibrary.org/b/id/${d.cover_i}-M.jpg`;
-                if (d.isbn?.[0]) return `https://covers.openlibrary.org/b/isbn/${d.isbn[0]}-M.jpg`;
-                return `https://covers.openlibrary.org/b/isbn/${item.defaultIsbns[i + 1] || primaryIsbn}-M.jpg`;
+      const items = (
+        await Promise.all(
+          hits.map(async (hit): Promise<BookSeriesItem | null> => {
+            try {
+              const hitLower = hit.title.toLowerCase();
+              if (hitLower.startsWith("list of") || hitLower === "book series") return null;
+
+              const summaryUrl = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(hit.title)}`;
+              const sumRes = await fetch(summaryUrl, {
+                headers: { Accept: "application/json" },
+                next: { revalidate: 3600 },
               });
+              if (!sumRes.ok) return null;
+              const summary = (await sumRes.json()) as WikiSummary;
 
-              if (extraCovers.length === 0) {
-                extraCovers.push(`https://covers.openlibrary.org/b/isbn/${item.defaultIsbns[1] || primaryIsbn}-M.jpg`);
+              if (summary.type === "disambiguation") return null;
+
+              const descLower = (summary.description ?? "").toLowerCase();
+
+              // Exclude non-book pages (films, actors, television)
+              if (descLower.includes("film") || descLower.includes("actor") || descLower.includes("television")) {
+                return null;
+              }
+
+              const coverUrl = summary.originalimage?.source || summary.thumbnail?.source;
+              const title = summary.title?.replace(/\s*\([^)]*\)/, "") ?? hit.title;
+              const description = summary.extract || hit.snippet.replace(/<[^>]*>/g, "");
+
+              let author = "Featured Author";
+              if (summary.description && /by\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)/i.test(summary.description)) {
+                const match = summary.description.match(/by\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)/i);
+                if (match) author = match[1];
               }
 
               const sampleBook: BookMetadata = {
-                id: doc.key ? `openlibrary:${doc.key.replace("/works/", "")}` : item.id,
-                title: doc.title || item.title,
-                authors: doc.author_name || [item.author],
-                description: typeof doc.first_sentence === "string" ? doc.first_sentence : doc.first_sentence?.value || `An extraordinary saga in the ${item.title} collection.`,
-                subjects: ["Series", "Fantasy", "Fiction"],
-                publishedYear: doc.first_publish_year || 1990,
-                publisher: doc.publisher?.[0] || "Publisher",
-                pageCount: doc.number_of_pages_median || 420,
-                isbns: doc.isbn || [primaryIsbn],
+                id: `wiki-series-${hit.pageid}`,
+                title,
+                authors: [author],
+                description,
+                subjects: ["Series Collection", "Literature"],
+                publishedYear: 2024,
+                publisher: "Live Series Archive",
+                pageCount: 420,
+                isbns: [],
                 coverUrl,
-                sourceLinks: doc.key ? [`https://openlibrary.org${doc.key}`] : [],
+                sourceLinks: [`https://en.wikipedia.org/wiki/${encodeURIComponent(hit.title)}`],
                 providerIds: {},
                 source: "openlibrary",
               };
 
-              seriesList.push({
-                id: item.id,
-                title: item.title,
-                author: doc.author_name?.[0] || item.author,
-                volumes: item.volumes,
-                chapters: `${doc.number_of_pages_median || 420} pages per vol`,
+              return {
+                id: `series-${hit.pageid}`,
+                title,
+                author,
+                volumes: summary.description ? summary.description.charAt(0).toUpperCase() + summary.description.slice(1) : "Novel Series Collection",
+                description,
                 coverUrl,
-                extraCovers,
                 sampleBook,
-              });
+              };
+            } catch {
+              return null;
             }
-          }
-        } catch {
-          // safe fallback
-        }
-      })
-    );
+          })
+        )
+      ).filter(Boolean) as BookSeriesItem[];
 
-    return seriesList;
+      // Filter out duplicate titles
+      const seen = new Set<string>();
+      const result: BookSeriesItem[] = [];
+      for (const item of items) {
+        const norm = item.title.toLowerCase().trim();
+        if (!seen.has(norm)) {
+          seen.add(norm);
+          result.push(item);
+        }
+      }
+
+      return result.slice(0, limit);
+    } catch {
+      return [];
+    }
   });
 }
-

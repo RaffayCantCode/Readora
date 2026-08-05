@@ -1,11 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Play, Clock, ChevronRight, Bookmark } from "lucide-react";
 import { motion } from "framer-motion";
 import Image from "next/image";
-import type { BookMetadata } from "@/lib/books/types";
-import { fixtureBooks } from "@/lib/library/fixtures";
+import type { BookMetadata, SearchResponse } from "@/lib/books/types";
 import { useHomeTheme } from "./home-theme-provider";
 
 export type CurrentlyReadingBook = BookMetadata & {
@@ -18,55 +17,59 @@ export type CurrentlyReadingBook = BookMetadata & {
   accent?: string;
 };
 
-// Rich active reading list sorted by most recently opened first
-export const activeReadingList: CurrentlyReadingBook[] = [
-  {
-    ...fixtureBooks[0], // The Cartographer's Garden
-    progress: 68,
-    currentPage: 239,
-    totalPages: 352,
-    estimatedHoursLeft: 2.1,
-    lastOpened: "2 hours ago",
-    color: "#283830",
-    accent: "#c78d3d",
-  },
-  {
-    ...fixtureBooks[1], // A Field Guide to Quiet
-    progress: 34,
-    currentPage: 71,
-    totalPages: 208,
-    estimatedHoursLeft: 1.8,
-    lastOpened: "Yesterday",
-    color: "#4a3c31",
-    accent: "#d4a359",
-  },
-  {
-    ...fixtureBooks[3], // Under the Fig Tree
-    progress: 82,
-    currentPage: 216,
-    totalPages: 264,
-    estimatedHoursLeft: 0.9,
-    lastOpened: "3 days ago",
-    color: "#6b3e2e",
-    accent: "#e5c898",
-  },
-];
-
 export function ContinueReadingSection({
   onSelectBook,
 }: {
   onSelectBook: (book: BookMetadata) => void;
 }) {
   const { reduceMotion } = useHomeTheme();
-  const [activeBookId, setActiveBookId] = useState<string>(activeReadingList[0].id);
+  const [readingList, setReadingList] = useState<CurrentlyReadingBook[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [activeBookId, setActiveBookId] = useState<string>("");
+
+  useEffect(() => {
+    async function loadActiveReading() {
+      setLoading(true);
+      try {
+        const response = await fetch(`/api/books/trending?limit=3`);
+        const payload = (await response.json()) as SearchResponse;
+        if (payload.items && payload.items.length > 0) {
+          const list: CurrentlyReadingBook[] = payload.items.map((item, idx) => ({
+            ...item,
+            progress: idx === 0 ? 68 : idx === 1 ? 34 : 82,
+            currentPage: idx === 0 ? 239 : idx === 1 ? 71 : 216,
+            totalPages: item.pageCount ?? (idx === 0 ? 352 : 250),
+            estimatedHoursLeft: idx === 0 ? 2.1 : 1.5,
+            lastOpened: idx === 0 ? "2 hours ago" : idx === 1 ? "Yesterday" : "3 days ago",
+            color: idx === 0 ? "#283830" : idx === 1 ? "#4a3c31" : "#6b3e2e",
+            accent: idx === 0 ? "#c78d3d" : idx === 1 ? "#d4a359" : "#e5c898",
+          }));
+          setReadingList(list);
+          setActiveBookId(list[0].id);
+        }
+      } catch {
+        // Safe handling
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadActiveReading();
+  }, []);
 
   const heroBook = useMemo(() => {
-    return activeReadingList.find((b) => b.id === activeBookId) ?? activeReadingList[0];
-  }, [activeBookId]);
+    if (readingList.length === 0) return null;
+    return readingList.find((b) => b.id === activeBookId) ?? readingList[0];
+  }, [readingList, activeBookId]);
 
   const secondaryBooks = useMemo(() => {
-    return activeReadingList.filter((b) => b.id !== heroBook.id);
-  }, [heroBook.id]);
+    if (!heroBook) return [];
+    return readingList.filter((b) => b.id !== heroBook.id);
+  }, [readingList, heroBook]);
+
+  if (loading || !heroBook) {
+    return null;
+  }
 
   return (
     <section className="relative overflow-hidden py-12 lg:py-20" style={{ borderBottom: "1px solid var(--border-subtle)" }}>
@@ -95,7 +98,7 @@ export function ContinueReadingSection({
             </div>
           </div>
           <span className="hidden text-xs text-dim sm:inline" style={{ color: "var(--text-dim)" }}>
-            {activeReadingList.length} books in progress
+            {readingList.length} books in progress
           </span>
         </div>
 

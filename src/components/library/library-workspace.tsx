@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, BookOpen, Settings2 } from "lucide-react";
 import Link from "next/link";
 import type { BookMetadata, SearchResponse } from "@/lib/books/types";
-import { fixtureBooks } from "@/lib/library/fixtures";
 import { useLibraryPreferences } from "@/lib/library/preferences";
 import { Button } from "@/components/ui/button";
 import { BookDetailPanel } from "./book-detail-panel";
@@ -14,17 +13,37 @@ import { LibraryControls } from "./library-controls";
 
 export function LibraryWorkspace({ showBack = true }: { showBack?: boolean }) {
   const { preferences, update } = useLibraryPreferences();
-  const [books, setBooks] = useState<BookMetadata[]>(fixtureBooks);
+  const [books, setBooks] = useState<BookMetadata[]>([]);
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState<BookMetadata>();
   const [view, setView] = useState<"grid" | "list">("grid");
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
 
+  // Load live initial library items
   useEffect(() => {
-    if (query.trim().length < 2) {
-      setBooks(fixtureBooks);
-      setMessage("");
+    async function loadInitialLibrary() {
+      setLoading(true);
+      try {
+        const res = await fetch("/api/books/trending?limit=12");
+        const payload = (await res.json()) as SearchResponse;
+        if (payload.items) {
+          setBooks(payload.items);
+        }
+      } catch {
+        // Safe handling
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadInitialLibrary();
+  }, []);
+
+  // Handle user search input
+  useEffect(() => {
+    const trimmed = query.trim();
+    if (trimmed.length < 2) {
       return;
     }
 
@@ -32,7 +51,7 @@ export function LibraryWorkspace({ showBack = true }: { showBack?: boolean }) {
     const timer = window.setTimeout(async () => {
       setLoading(true);
       try {
-        const response = await fetch("/api/books/search?q=" + encodeURIComponent(query) + "&type=title&limit=12", { signal: controller.signal });
+        const response = await fetch("/api/books/search?q=" + encodeURIComponent(trimmed) + "&type=title&limit=12", { signal: controller.signal });
         const payload = await response.json() as SearchResponse;
         if (payload.items.length) {
           setBooks(payload.items);
@@ -46,7 +65,7 @@ export function LibraryWorkspace({ showBack = true }: { showBack?: boolean }) {
       } finally {
         setLoading(false);
       }
-    }, 360);
+    }, 300);
 
     return () => {
       window.clearTimeout(timer);

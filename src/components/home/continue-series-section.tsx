@@ -5,7 +5,6 @@ import { Layers, ArrowRight, BookCheck, ShieldCheck } from "lucide-react";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import type { BookMetadata } from "@/lib/books/types";
-import { activeReadingList } from "./continue-reading-section";
 import { useHomeTheme } from "./home-theme-provider";
 
 type SeriesDefinition = {
@@ -61,32 +60,21 @@ const seriesDatabase: Record<string, Omit<SeriesDefinition, "id">> = {
     color: "#233342",
     accent: "#8eb6d4",
   },
-  "percy-jackson": {
-    seriesTitle: "Percy Jackson & The Olympians",
-    author: "Rick Riordan",
-    activeVolumeNumber: 1,
-    activeVolumeTitle: "The Lightning Thief",
-    nextVolumeNumber: 2,
-    nextVolumeTitle: "The Sea of Monsters",
-    totalVolumes: 5,
-    description: "Mythological monsters and gods of Mount Olympus walk among mortals in modern day.",
-    color: "#1b4332",
-    accent: "#74c69d",
-  },
 };
 
 export function ContinueSeriesSection({
+  activeBooks = [],
   onSelectBook,
 }: {
+  activeBooks?: BookMetadata[];
   onSelectBook?: (book: BookMetadata) => void;
 }) {
   const { reduceMotion } = useHomeTheme();
 
   // Detect if any book in user's active reading list belongs to a series
   const activeSeries = useMemo<SeriesDefinition | null>(() => {
-    for (const book of activeReadingList) {
+    for (const book of activeBooks) {
       const titleLower = book.title.toLowerCase();
-      // Match against known series
       if (titleLower.includes("orchard") || book.id.includes("orchard")) {
         return { id: "orchard-letters", ...seriesDatabase["orchard-letters"] };
       }
@@ -96,12 +84,9 @@ export function ContinueSeriesSection({
       if (titleLower.includes("mistborn") || titleLower.includes("final empire")) {
         return { id: "mistborn", ...seriesDatabase["mistborn"] };
       }
-      if (titleLower.includes("percy jackson") || titleLower.includes("lightning thief")) {
-        return { id: "percy-jackson", ...seriesDatabase["percy-jackson"] };
-      }
     }
     return null;
-  }, []);
+  }, [activeBooks]);
 
   // CRITICAL REQUIREMENT: If no series is currently being read, hide this section entirely!
   if (!activeSeries) {

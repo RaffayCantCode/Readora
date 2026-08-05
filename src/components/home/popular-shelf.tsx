@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Loader2, Flame } from "lucide-react";
 import type { BookMetadata, SearchResponse } from "@/lib/books/types";
-import { fixtureBooks } from "@/lib/library/fixtures";
 import { Book3D } from "@/components/ui/book-3d";
 import { useHomeTheme } from "./home-theme-provider";
 
@@ -14,25 +13,20 @@ export function PopularShelf({
   onInspectBook?: (book: BookMetadata) => void;
 }) {
   const { theme, reduceMotion } = useHomeTheme();
-  const [popularBooks, setPopularBooks] = useState<BookMetadata[]>([
-    fixtureBooks[1],
-    fixtureBooks[2],
-    fixtureBooks[3],
-    fixtureBooks[4],
-  ]);
-  const [loading, setLoading] = useState(false);
+  const [popularBooks, setPopularBooks] = useState<BookMetadata[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function fetchLiveTrending() {
       setLoading(true);
       try {
-        const res = await fetch("/api/books/trending");
+        const res = await fetch("/api/books/trending?limit=4");
         const data = (await res.json()) as SearchResponse;
-        if (data.items && data.items.length >= 4) {
+        if (data.items && data.items.length > 0) {
           setPopularBooks(data.items.slice(0, 4));
         }
       } catch {
-        // Fallback to fixture popular books
+        // Safe handling
       } finally {
         setLoading(false);
       }
@@ -76,23 +70,33 @@ export function PopularShelf({
 
       {/* Real 3D Books Standing on Physical Shelf Ledge */}
       <div className="relative pt-6 pb-12 px-4 rounded-3xl border shadow-2xl overflow-hidden" style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--border-subtle)" }}>
-        {/* Books 3D Grid */}
-        <div className="grid grid-cols-2 gap-8 sm:grid-cols-4 items-end justify-items-center">
-          {popularBooks.map((book, idx) => (
-            <motion.div
-              key={book.id}
-              initial={reduceMotion ? false : { opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: idx * 0.1, duration: 0.5 }}
-            >
-              <Book3D
-                book={book}
-                onClick={() => onInspectBook && onInspectBook(book)}
-                size="md"
-              />
-            </motion.div>
-          ))}
-        </div>
+        {loading ? (
+          <div className="flex min-h-[220px] items-center justify-center">
+            <Loader2 className="animate-spin text-brass" size={28} />
+          </div>
+        ) : popularBooks.length === 0 ? (
+          <div className="flex min-h-[220px] items-center justify-center text-xs opacity-60">
+            Searching live web catalog... Type any book in the search bar above to inspect live editions.
+          </div>
+        ) : (
+          /* Books 3D Grid */
+          <div className="grid grid-cols-2 gap-8 sm:grid-cols-4 items-end justify-items-center">
+            {popularBooks.filter(Boolean).map((book, idx) => (
+              <motion.div
+                key={book.id}
+                initial={reduceMotion ? false : { opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: idx * 0.1, duration: 0.5 }}
+              >
+                <Book3D
+                  book={book}
+                  onClick={() => onInspectBook && onInspectBook(book)}
+                  size="md"
+                />
+              </motion.div>
+            ))}
+          </div>
+        )}
 
         {/* Physical Shelf Ledge Underneath */}
         <div className={`mt-6 h-5 w-full rounded-b-xl ${shelfLedgeClass}`} />
@@ -100,5 +104,3 @@ export function PopularShelf({
     </section>
   );
 }
-
-

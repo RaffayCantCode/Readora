@@ -24,33 +24,49 @@ function queryValue(query: BookSearchQuery): string {
   if (query.type === "isbn") return "isbn=" + value;
   if (query.type === "subject") return "subject=" + value;
   if (query.type === "series") return "q=" + encodeURIComponent("series:" + query.query);
-  return "title=" + value;
+  return "q=" + value;
 }
 
 export async function searchOpenLibrary(query: BookSearchQuery): Promise<{ books: ProviderBook[]; total: number }> {
   const url = "https://openlibrary.org/search.json?" + queryValue(query) + "&page=" + query.page + "&limit=" + query.limit + "&fields=key,title,author_name,subject,first_publish_year,publisher,number_of_pages_median,isbn,cover_i,edition_key,first_sentence";
   return withCache("openlibrary:" + url, async () => {
-    const response = await fetch(url, { headers: { Accept: "application/json" }, next: { revalidate: 600 } });
-    if (!response.ok) throw new Error("Open Library returned " + response.status);
-    const payload = (await response.json()) as OpenLibraryResponse;
-    const books = (payload.docs ?? []).filter((doc) => doc.title).map((doc): ProviderBook => {
-      const isbnCover = doc.isbn?.[0] ? `https://covers.openlibrary.org/b/isbn/${doc.isbn[0]}-L.jpg` : undefined;
-      const coverUrl = doc.cover_i ? "https://covers.openlibrary.org/b/id/" + doc.cover_i + "-L.jpg?default=false" : isbnCover;
-      return {
-        provider: "openlibrary",
-        providerId: doc.key ?? doc.edition_key?.[0] ?? doc.title ?? "unknown",
-        title: doc.title ?? "Untitled",
-        authors: doc.author_name ?? ["Unknown author"],
-        description: cleanText(typeof doc.first_sentence === "object" ? doc.first_sentence?.value : doc.first_sentence),
-        subjects: (doc.subject ?? []).slice(0, 12),
-        publishedYear: doc.first_publish_year,
-        publisher: doc.publisher?.[0],
-        pageCount: doc.number_of_pages_median,
-        isbns: (doc.isbn ?? []).slice(0, 8),
-        coverUrl,
-        sourceLinks: doc.key ? ["https://openlibrary.org" + doc.key] : [],
-      };
-    });
-    return { books, total: payload.numFound ?? books.length };
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 3500);
+
+    try {
+      const response = await fetch(url, {
+        headers: {
+          Accept: "application/json",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        },
+        signal: controller.signal,
+        next: { revalidate: 600 },
+      });
+      clearTimeout(timeoutId);
+      if (!response.ok) throw new Error("Open Library returned " + response.status);
+      const payload = (await response.json()) as OpenLibraryResponse;
+      const books = (payload.docs ?? []).filter((doc) => doc.title).map((doc): ProviderBook => {
+        const isbnCover = doc.isbn?.[0] ? `https://covers.openlibrary.org/b/isbn/${doc.isbn[0]}-L.jpg` : undefined;
+        const coverUrl = doc.cover_i ? "https://covers.openlibrary.org/b/id/" + doc.cover_i + "-L.jpg?default=false" : isbnCover;
+        return {
+          provider: "openlibrary",
+          providerId: doc.key ?? doc.edition_key?.[0] ?? doc.title ?? "unknown",
+          title: doc.title ?? "Untitled",
+          authors: doc.author_name ?? ["Unknown author"],
+          description: cleanText(typeof doc.first_sentence === "object" ? doc.first_sentence?.value : doc.first_sentence),
+          subjects: (doc.subject ?? []).slice(0, 12),
+          publishedYear: doc.first_publish_year,
+          publisher: doc.publisher?.[0],
+          pageCount: doc.number_of_pages_median,
+          isbns: (doc.isbn ?? []).slice(0, 8),
+          coverUrl,
+          sourceLinks: doc.key ? ["https://openlibrary.org" + doc.key] : [],
+        };
+      });
+      return { books, total: payload.numFound ?? books.length };
+    } catch {
+      clearTimeout(timeoutId);
+      return { books: [], total: 0 };
+    }
   });
 }
